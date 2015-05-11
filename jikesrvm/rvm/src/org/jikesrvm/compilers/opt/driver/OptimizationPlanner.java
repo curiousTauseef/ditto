@@ -56,6 +56,9 @@ import org.jikesrvm.compilers.opt.ssa.PiNodes;
 import org.jikesrvm.compilers.opt.ssa.RedundantBranchElimination;
 import org.jikesrvm.compilers.opt.ssa.SSATuneUp;
 import org.jikesrvm.osr.AdjustBCIndexes;
+import org.jikesrvm.replay.ReplayManager;
+import org.jikesrvm.replay.instrumentation.WrapJoin;
+import org.jikesrvm.replay.instrumentation.WrapSyncMethods;
 
 /**
  * This class specifies the order in which CompilerPhases are
@@ -202,6 +205,10 @@ public class OptimizationPlanner {
           }
         },
 
+        // Insert instrumentation for the replay sub-system
+        new WrapSyncMethods(),
+        new WrapJoin(),
+
         // Adjust static branch probabilities to account for infrequent blocks
         new AdjustBranchProbabilities(),
 
@@ -278,6 +285,13 @@ public class OptimizationPlanner {
       addComponent(p, new InsertInstructionCounters());
       // Insert method invocation counters
       addComponent(p, new InsertMethodInvocationCounter());
+    }
+
+    // Insert instrumentation for the replay sub-system
+    if (ReplayManager.isEnabled()
+        && ReplayManager.getReplayMode().wrapsMemoryAccesses()) {
+      addComponent(p, ReplayManager.getReplayMode()
+                                   .getWrapMemoryAccessesCompilerPhase());
     }
   }
 

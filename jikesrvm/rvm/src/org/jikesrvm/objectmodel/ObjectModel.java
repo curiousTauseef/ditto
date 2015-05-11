@@ -489,6 +489,10 @@ public class ObjectModel implements JavaHeaderConstants, SizeConstants {
     return JavaHeader.holdsLock(obj, thread);
   }
 
+  public static boolean hasOwner(Object obj) {
+    return JavaHeader.hasOwner(obj);
+  }
+
   /**
    * Obtains the heavy-weight lock, if there is one, associated with the
    * indicated object.  Returns <code>null</code>, if there is no

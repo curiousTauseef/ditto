@@ -58,6 +58,7 @@ import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TrueGuardOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
+import org.jikesrvm.replay.ReplayManager;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Offset;

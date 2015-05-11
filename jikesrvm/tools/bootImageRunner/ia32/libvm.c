@@ -852,6 +852,14 @@ softwareSignalHandler(int signo,
         return;
     }
 
+    if (signo == SIGUSR1) {
+        unsigned *flag = (unsigned *)((char *)VmToc + bootRecord->finishTraceRequestedOffset);
+        if (!*flag) {
+            *flag = 1;
+        }
+        return;
+    }
+
     /** We need to adapt this code so that we run the exit handlers
         appropriately. */
 
@@ -1152,6 +1160,11 @@ createVM(void)
         return 1;
     }
     if (sigaction (SIGTERM, &action, 0)) { /* catch TERM to dump and die */
+        fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
+        return 1;
+    }
+    if (sigaction (SIGUSR1, &action, 0)) { /* catch USR1 to finish replay trace
+                                            * in case of deadlock. */
         fprintf(SysErrorFile, "%s: sigaction failed (errno=%d)\n", Me, errno);
         return 1;
     }

@@ -588,6 +588,10 @@ public class JavaHeader implements JavaHeaderConstants {
     return ThinLock.holdsLock(obj, STATUS_OFFSET, thread);
   }
 
+  public static boolean hasOwner(Object obj) {
+    return ThinLock.hasOwner(obj, STATUS_OFFSET);
+  }
+
   /**
    * Obtains the heavy-weight lock, if there is one, associated with the
    * indicated object.  Returns <code>null</code>, if there is no

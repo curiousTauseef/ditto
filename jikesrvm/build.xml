@@ -2287,8 +2287,8 @@ target.jni-suffix=${target.jni-suffix}
   </target>
 
   <target name="jdocs" depends="compile-for-apidocs" description="Generate the jdocs.">
-    <ant antfile="build/components/jdocs.xml" target="ensure"/>
-    <test-file name="jdocs.jar" location="${components.file}"/>
+    <!--ant antfile="build/components/jdocs.xml" target="ensure"/>
+    <test-file name="jdocs.jar" location="${components.file}"/-->
     <record name="${build.dir}/javadoc/JavadocReport.txt" action="start" append="true" emacsmode="true"/>
     <javadoc
         destdir="${build.dir}/javadoc"
@@ -2300,9 +2300,9 @@ target.jni-suffix=${target.jni-suffix}
         source="${rvm.java.version}"
         private="true"
         windowtitle="Jikes RVM API">
-      <arg value="-docletpath"/>
-      <arg value="${jdocs.jar}"/>
-      <doclet name="com.dzone.jdocs.doclet.Doclet"/>
+      <!--arg value="-docletpath"/>
+      <arg value="${jdocs.jar}"/-->
+      <!--doclet name="com.dzone.jdocs.doclet.Doclet"/-->
       <classpath>
         <pathelement location="${build.dir}/javadoc/classes-ia32"/>
       </classpath>

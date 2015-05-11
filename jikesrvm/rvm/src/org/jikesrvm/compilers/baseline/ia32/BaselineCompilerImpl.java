@@ -43,6 +43,7 @@ import org.jikesrvm.jni.ia32.JNICompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.JavaHeaderConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.replay.ReplayManager;
 import org.jikesrvm.runtime.ArchEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
@@ -2925,8 +2926,8 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_unresolved_putfield(FieldReference fieldRef) {
-    Barriers.compileModifyCheck(asm, fieldRef.getNumberOfStackSlots() * WORDSIZE);
     TypeReference fieldType = fieldRef.getFieldContentsType();
+    Barriers.compileModifyCheck(asm, fieldRef.getNumberOfStackSlots() * WORDSIZE);
     emitDynamicLinkingSequence(asm, T0, fieldRef, true);
     if (fieldType.isReferenceType()) {
       // 32/64bit reference store
@@ -3022,9 +3023,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_resolved_putfield(FieldReference fieldRef) {
+    TypeReference fieldType = fieldRef.getFieldContentsType();
     Barriers.compileModifyCheck(asm, fieldRef.getNumberOfStackSlots() * WORDSIZE);
     RVMField field = fieldRef.peekResolvedField();
-    TypeReference fieldType = fieldRef.getFieldContentsType();
     Offset fieldOffset = field.getOffset();
     if (field.isReferenceType()) {
       // 32/64bit reference store
@@ -3784,8 +3785,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       asm.emitMOV_Reg_RegInd_Quad(T0, SP); // T0 is object reference
     }
     genNullCheck(asm, T0);
+    NormalMethod target = Entrypoints.lockMethod;
     genParameterRegisterLoad(asm, 1);      // pass 1 parameter word
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(target.getOffset()));
   }
 
   /**
@@ -3793,8 +3795,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
    */
   @Override
   protected final void emit_monitorexit() {
+    NormalMethod target = Entrypoints.unlockMethod;
     genParameterRegisterLoad(asm, 1);          // pass 1 parameter word
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unlockMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(target.getOffset()));
   }
 
   //----------------//
@@ -4027,9 +4030,10 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
       // push "this" object
       asm.emitPUSH_RegDisp(ESP, localOffset(0));
     }
+    NormalMethod target = Entrypoints.lockMethod;
     // pass 1 parameter
     genParameterRegisterLoad(asm, 1);
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.lockMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(target.getOffset()));
     // after this instruction, the method has the monitor
     lockOffset = asm.getMachineCodeIndex();
   }
@@ -4045,8 +4049,9 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
     } else {
       asm.emitPUSH_RegDisp(ESP, localOffset(0));                    // push "this" object
     }
+    NormalMethod target = Entrypoints.unlockMethod;
     genParameterRegisterLoad(asm, 1); // pass 1 parameter
-    asm.emitCALL_Abs(Magic.getTocPointer().plus(Entrypoints.unlockMethod.getOffset()));
+    asm.emitCALL_Abs(Magic.getTocPointer().plus(target.getOffset()));
   }
 
   /**
@@ -4792,5 +4797,6 @@ public abstract class BaselineCompilerImpl extends BaselineCompiler implements B
   protected final ForwardReference emit_pending_goto(int bTarget) {
     return asm.generatePendingJMP(bTarget);
   }
+
 }
 

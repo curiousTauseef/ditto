@@ -28,6 +28,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiler;
 import org.jikesrvm.compilers.common.BootImageCompiler;
 import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.replay.ReplayManager;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.DynamicLibrary;
 import org.jikesrvm.runtime.Entrypoints;
@@ -403,6 +404,7 @@ public class VM extends Properties implements Constants, ExitStatus {
     MemoryManager.fullyBootedVM();
     BaselineCompiler.fullyBootedVM();
     TraceEngine.engine.fullyBootedVM();
+    ReplayManager.fullyBootedVM();
 
     runClassInitializer("java.util.logging.Level");
     if (VM.BuildForGnuClasspath) {
@@ -2649,5 +2651,6 @@ public class VM extends Properties implements Constants, ExitStatus {
   public static boolean buildForSSE2() {
     return BuildForSSE2;
   }
+
 }
 

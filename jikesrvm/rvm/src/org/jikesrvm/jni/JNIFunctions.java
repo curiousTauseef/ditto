@@ -33,6 +33,8 @@ import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.classloader.UTF8Convert;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.replay.ReplayManager;
+import org.jikesrvm.replay.ReplayerMethod;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
@@ -5594,7 +5596,7 @@ public class JNIFunctions implements SizeConstants {
 
     try {
       Object obj = env.getJNIRef(objJREF);
-      ObjectModel.genericLock(obj);
+      ReplayManager.runtimeGenericLock(obj, ReplayerMethod.JNI_MONITORENTER);
       return 0;
     } catch (Throwable unexpected) {
       if (traceJNI) unexpected.printStackTrace(System.err);

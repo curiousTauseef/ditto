@@ -35,7 +35,8 @@ static const int IRC_INDEX                     = AOS_INDEX+1;
 static const int RECOMP_INDEX                  = IRC_INDEX+1;
 static const int BASE_INDEX                    = RECOMP_INDEX+1;
 static const int OPT_INDEX                     = BASE_INDEX+1;
-static const int VMCLASSES_INDEX               = OPT_INDEX+1;
+static const int REPLAY_INDEX                  = OPT_INDEX+1;
+static const int VMCLASSES_INDEX               = REPLAY_INDEX+1;
 static const int PROCESSORS_INDEX              = VMCLASSES_INDEX+1;
 
 static const int numNonstandardArgs      = PROCESSORS_INDEX+1;
@@ -57,6 +58,7 @@ static const char* nonStandardArgs[numNonstandardArgs] = {
    "-X:recomp",
    "-X:base",
    "-X:opt",
+   "-X:replay",
    "-X:vmClasses=",
    "-X:availableProcessors=",
 };
@@ -83,9 +85,11 @@ static const char* nonStandardUsage[] = {
    "  -X:recomp:<option>         Pass <option> on to the recompilation compiler(s)",
    "        :help                Print usage choices for -X:recomp",
    "  -X:base:<option>           Pass <option> on to the baseline compiler",
-   "        :help                print usage choices for -X:base",
+   "        :help                Print usage choices for -X:base",
    "  -X:opt:<option>            Pass <option> on to the optimizing compiler",
    "        :help                Print usage choices for -X:opt",
+   "  -X:replay:<option>         Pass <option> on to the replay subsystem",
+   "        :help                Print usage choices for -X:replay",
    "  -X:vmClasses=<path>        Load the org.jikesrvm.* and java.* classes",
    "                             from <path>, a list like one would give to the",
    "                             -classpath argument.",

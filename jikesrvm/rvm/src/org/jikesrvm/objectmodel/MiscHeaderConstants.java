@@ -34,7 +34,12 @@ public interface MiscHeaderConstants extends Constants {
   int GC_TRACING_HEADER_BYTES = GC_TRACING_HEADER_WORDS << LOG_BYTES_IN_ADDRESS;
 
   /**
+   * Support for replay
+   */
+  int REPLAY_HEADER_BYTES = BYTES_IN_ADDRESS;
+
+  /**
    * How many bytes are used by all misc header fields?
    */
-  int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES; // + YYY_HEADER_BYTES;
+  int NUM_BYTES_HEADER = GC_TRACING_HEADER_BYTES + REPLAY_HEADER_BYTES; // + YYY_HEADER_BYTES;
 }

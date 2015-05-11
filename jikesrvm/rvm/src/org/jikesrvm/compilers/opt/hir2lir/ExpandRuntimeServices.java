@@ -79,6 +79,8 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
 import org.jikesrvm.compilers.opt.ir.operand.TypeOperand;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.replay.ReplayManager;
+import org.jikesrvm.replay.instrumentation.SyncEntrypoints;
 import org.jikesrvm.runtime.Entrypoints;
 
 /**
@@ -317,7 +319,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
           Operand ref = MonitorOp.getClearRef(inst);
           RVMType refType = ref.getType().peekType();
           if (refType != null && !refType.getThinLockOffset().isMax()) {
-            RVMMethod target = Entrypoints.inlineLockMethod;
+            RVMMethod target = ReplayManager.shouldWrapSync(inst.position.getMethod())
+                             ? SyncEntrypoints.inlineLock : Entrypoints.inlineLockMethod;
             Call.mutate2(inst,
                          CALL,
                          null,
@@ -333,7 +336,8 @@ public final class ExpandRuntimeServices extends CompilerPhase {
               inline(inst, ir);
             }
           } else {
-            RVMMethod target = Entrypoints.lockMethod;
+            RVMMethod target = ReplayManager.shouldWrapSync(inst.position.getMethod())
+                             ? SyncEntrypoints.genericLock : Entrypoints.lockMethod;
             Call.mutate1(inst,
                          CALL,
                          null,

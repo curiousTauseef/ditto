@@ -14,9 +14,12 @@ package org.jikesrvm.objectmodel;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.Constants;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.MemoryManagerConstants;
+import org.jikesrvm.replay.sys.sync.SyncRecorderObjectState;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Entrypoint;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -43,6 +46,8 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   static final Offset OBJECT_DEATH_OFFSET = OBJECT_OID_OFFSET.plus(BYTES_IN_ADDRESS);
   /* offset from object ref to .link field, in bytes */
   static final Offset OBJECT_LINK_OFFSET = OBJECT_DEATH_OFFSET.plus(BYTES_IN_ADDRESS);
+
+  public static final Offset REPLAY_WORD_OFFSET = MISC_HEADER_START.plus(GC_TRACING_HEADER_BYTES);
 
   /////////////////////////
   // Support for YYY (an example of how to add a word to all objects)
@@ -88,12 +93,13 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
   @Uninterruptible
   public static void initializeHeader(Object obj, TIB tib, int size, boolean isScalar) {
     /* Only perform initialization when it is required */
+    Address ref = Magic.objectAsAddress(obj);
     if (MemoryManagerConstants.GENERATE_GC_TRACE) {
-      Address ref = Magic.objectAsAddress(obj);
       ref.store(oid, OBJECT_OID_OFFSET);
       ref.store(time, OBJECT_DEATH_OFFSET);
       oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) >> LOG_BYTES_IN_ADDRESS));
     }
+    ref.store(ObjectReference.nullReference(), REPLAY_WORD_OFFSET);
   }
 
   /**
@@ -115,6 +121,7 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
       prevAddress = ref.toWord();
       oid = oid.plus(Word.fromIntSignExtend((size - GC_TRACING_HEADER_BYTES) >> LOG_BYTES_IN_ADDRESS));
     }
+    bootImage.setNullAddressWord(ref.plus(REPLAY_WORD_OFFSET), false, false);
   }
 
   public static void updateDeathTime(Object object) {
@@ -197,6 +204,29 @@ public final class MiscHeader implements Constants, MiscHeaderConstants {
 
   public static int getHeaderSize() {
     return NUM_BYTES_HEADER;
+  }
+
+  /**
+   * Replay support
+   */
+
+  @Inline
+  public static Object getReplayRef(Object o) {
+    if (!Barriers.NEEDS_OBJECT_GETFIELD_BARRIER) {
+      ObjectReference r = Magic.objectAsAddress(o).loadObjectReference(REPLAY_WORD_OFFSET);
+      return !r.isNull() ? r.toObject() : null;
+    } else {
+      return Barriers.objectFieldRead(o, REPLAY_WORD_OFFSET, 0);
+    }
+  }
+
+  @Inline
+  public static void setReplayRef(Object o, Object value) {
+    if (Barriers.NEEDS_OBJECT_PUTFIELD_BARRIER) {
+      Barriers.objectFieldWrite(o, value, REPLAY_WORD_OFFSET, 0);
+    } else {
+      Magic.objectAsAddress(o).store(ObjectReference.fromObject(value), REPLAY_WORD_OFFSET);
+    }
   }
 
   /**

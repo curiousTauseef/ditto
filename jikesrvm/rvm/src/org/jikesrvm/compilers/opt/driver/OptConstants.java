@@ -35,6 +35,7 @@ public interface OptConstants {
   int EPILOGUE_BLOCK_BCI = -14;
   int OSR_PROLOGUE = -15;
   int SYNTH_LOOP_VERSIONING_BCI = -16;
+  int REPLAY_INSTRUMENTATION_BCI = -17;
 
   // The following are used as trinary return values in OptCompiler code
   byte NO = 0;

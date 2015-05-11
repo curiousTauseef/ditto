@@ -40,6 +40,14 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.ThreadContext;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.ThinLockConstants;
+import org.jikesrvm.replay.ReplayManager;
+import org.jikesrvm.replay.ReplayerMethod;
+import org.jikesrvm.replay.sys.ditto.DittoRecorderThreadState;
+import org.jikesrvm.replay.sys.ditto.DittoReplayerThreadState;
+import org.jikesrvm.replay.sys.jarec.JaRecRecorderThreadState;
+import org.jikesrvm.replay.sys.jarec.JaRecReplayerThreadState;
+import org.jikesrvm.replay.sys.sync.SyncRecorderThreadState;
+import org.jikesrvm.replay.sys.sync.SyncReplayerThreadState;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
@@ -1151,6 +1159,26 @@ public final class RVMThread extends ThreadContext {
    * Number of active daemon threads.
    */
   private static int numActiveDaemons;
+
+  /*
+   * Replay support
+   */
+
+  public long replayId = -1L;
+
+  public boolean traceNextSyncMethod = false;
+
+  public SyncRecorderThreadState syncRecState = null;
+
+  public SyncReplayerThreadState syncRepState = null;
+
+  public DittoRecorderThreadState dittoRecState = null;
+
+  public DittoReplayerThreadState dittoRepState = null;
+
+  public JaRecRecorderThreadState jaRecRecState = null;
+
+  public JaRecReplayerThreadState jaRecRepState = null;
 
   /*
    * TuningFork instrumentation support
@@ -2577,6 +2605,9 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   public void start() {
+    RVMThread parent = getCurrentThread();
+    ReplayManager.threadLifetime.threadBeforeStarting(parent, this);
+
     // N.B.: cannot hit a yieldpoint between setting execStatus and starting the
     // thread!!
     setExecStatus(IN_JAVA);
@@ -2588,8 +2619,11 @@ public final class RVMThread extends ThreadContext {
     acctLock.unlock();
     if (traceAcct)
       VM.sysWriteln("Thread #", threadSlot, " starting!");
+
     sysCall.sysThreadCreate(Magic.objectAsAddress(this),
         contextRegisters.ip, contextRegisters.getInnermostFramePointer());
+
+    ReplayManager.threadLifetime.threadAfterStarting(parent, this);
   }
 
   /**
@@ -2610,6 +2644,8 @@ public final class RVMThread extends ThreadContext {
       VM.sysWriteln("END Verbosely dumping stack at time of creating thread termination ]");
       VM.enableGC();
     }
+
+    ReplayManager.threadLifetime.threadTerminating(this);
 
     // allow java.lang.Thread.exit() to remove this thread from ThreadGroup
     java.lang.JikesRVMSupport.threadDied(thread);
@@ -2846,7 +2882,9 @@ public final class RVMThread extends ThreadContext {
   @UnpreemptibleNoWarn("Exceptions may possibly cause yields")
   public void suspend() {
     if (false) VM.sysWriteln("Thread #",getCurrentThreadSlot()," suspending Thread #",getThreadSlot());
+
     ObjectModel.genericUnlock(thread);
+
     Throwable rethrow = null;
     try {
       observeExecStatus();
@@ -2860,7 +2898,13 @@ public final class RVMThread extends ThreadContext {
     } catch (Throwable t) {
       rethrow = t;
     }
-    ObjectModel.genericLock(thread);
+
+    if (traceNextSyncMethod) {
+      ReplayManager.runtimeGenericLock(thread);
+    } else {
+      ObjectModel.genericLock(thread);
+    }
+
     if (rethrow != null)
       RuntimeEntrypoints.athrow(rethrow);
   }
@@ -2945,9 +2989,9 @@ public final class RVMThread extends ThreadContext {
       hasInterrupt = false;
     } else {
       waiting = hasTimeout ? Waiting.TIMED_WAITING : Waiting.WAITING;
+
       // get lock for object
       Lock l = ObjectModel.getHeavyLock(o, true);
-
       // release the lock
       l.mutex.lock();
       // this thread is supposed to own the lock on o
@@ -2996,8 +3040,14 @@ public final class RVMThread extends ThreadContext {
         // But we cannot queue the thread if it is already on another
         // queue.
       }
+
       // reacquire the lock, restoring the recursion count
-      ObjectModel.genericLock(o);
+      if (traceNextSyncMethod) {
+        ReplayManager.runtimeGenericLock(o);
+      } else {
+        ObjectModel.genericLock(o);
+      }
+
       waitObject = null;
       if (waitCount != 1) { // reset recursion count
         Lock l2 = ObjectModel.getHeavyLock(o, true);
@@ -3140,8 +3190,11 @@ public final class RVMThread extends ThreadContext {
     }
     // massive retardation. someone might be holding the java.lang.Thread lock.
     boolean holdsLock = holdsLock(thread);
-    if (holdsLock)
+
+    if (holdsLock) {
       ObjectModel.genericUnlock(thread);
+    }
+
     boolean hasTimeout;
     long whenWakeupNanos;
     hasTimeout = (time != 0);
@@ -3169,8 +3222,13 @@ public final class RVMThread extends ThreadContext {
     }
     monitor().unlock();
 
-    if (holdsLock)
-      ObjectModel.genericLock(thread);
+    if (holdsLock) {
+      if (traceNextSyncMethod) {
+        ReplayManager.runtimeGenericLock(thread);
+      } else {
+        ObjectModel.genericLock(thread);
+      }
+    }
 
     if (throwThis != null) {
       throw throwThis;
@@ -4616,6 +4674,8 @@ public final class RVMThread extends ThreadContext {
    */
   public int dump(char[] dest, int offset) {
     offset = Services.sprintf(dest, offset, getThreadSlot()); // id
+    offset = Services.sprintf(dest, offset, "-#");
+    offset = Services.sprintf(dest, offset, replayId);
     if (daemon) {
       offset = Services.sprintf(dest, offset, "-daemon"); // daemon thread?
     }

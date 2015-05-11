@@ -19,6 +19,7 @@ import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.ia32.BaselineConstants;
 import org.jikesrvm.objectmodel.ObjectModel;
+import org.jikesrvm.replay.ReplayManager;
 import org.jikesrvm.runtime.ExceptionDeliverer;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;

@@ -377,6 +377,8 @@ public class Entrypoints {
       getField(org.jikesrvm.scheduler.RVMThread.class, "debugRequested", boolean.class);
   public static final NormalMethod dumpStackAndDieMethod =
       getMethod(org.jikesrvm.scheduler.RVMThread.class, "dumpStackAndDie", "(Lorg/vmmagic/unboxed/Address;)V");
+  public static final RVMField finishTraceRequestedField =
+      getField(org.jikesrvm.replay.FinishTraceThread.class, "finishTraceRequested", boolean.class);
 
   public static final RVMField latestContenderField =
       getField(org.jikesrvm.scheduler.SpinLock.class, "latestContender", org.jikesrvm.scheduler.RVMThread.class);

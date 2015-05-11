@@ -27,6 +27,7 @@ import org.jikesrvm.objectmodel.FieldLayoutContext;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.replay.sys.ditto.DittoRecorderObjectState;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.StackBrowser;
@@ -191,6 +192,8 @@ public final class RVMClass extends RVMType implements Constants, ClassLoaderCon
    * Are assertions enabled on this class?
    */
   private final boolean desiredAssertionStatus;
+
+  public Object replayLock;
 
   // --- General purpose functions --- //
 

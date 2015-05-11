@@ -163,7 +163,7 @@ import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
  * <p> TODO: This would be more effective if formulated as a data-flow
  *       problem, and solved with iteration
  */
-class SimpleEscape extends CompilerPhase {
+public class SimpleEscape extends CompilerPhase {
   /**
    * Return this instance of this phase. This phase contains no
    * per-compilation instance fields.

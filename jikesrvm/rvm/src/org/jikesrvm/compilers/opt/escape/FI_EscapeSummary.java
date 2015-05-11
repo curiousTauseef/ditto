@@ -19,13 +19,13 @@ import org.jikesrvm.compilers.opt.ir.Register;
  * This class holds the results of a flow-insensitive escape analysis
  * for a method.
  */
-class FI_EscapeSummary {
+public class FI_EscapeSummary {
 
   /**
    * Returns true iff ANY object pointed to by symbolic register r
    * MUST be thread local
    */
-  boolean isThreadLocal(Register r) {
+  public boolean isThreadLocal(Register r) {
     Object result = hash.get(r);
     return result != null && result == THREAD_LOCAL;
   }
@@ -34,7 +34,7 @@ class FI_EscapeSummary {
    * Returns true iff ANY object pointed to by symbolic register r
    * MUST be method local
    */
-  boolean isMethodLocal(Register r) {
+  public boolean isMethodLocal(Register r) {
     Object result = hash2.get(r);
     return result != null && result == METHOD_LOCAL;
   }

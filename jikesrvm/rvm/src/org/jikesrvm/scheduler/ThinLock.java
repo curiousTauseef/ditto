@@ -249,6 +249,29 @@ public final class ThinLock implements ThinLockConstants {
 
   @Inline
   @Uninterruptible
+  public static boolean hasOwner(Object o, Offset lockOffset) {
+    for (int cnt=0;;++cnt) {
+      Word bits = Magic.getWordAtOffset(o, lockOffset);
+      if (bits.and(TL_STAT_MASK).EQ(TL_STAT_BIASABLE)) {
+        return !bits.and(TL_THREAD_ID_MASK).isZero() && !bits.and(TL_LOCK_COUNT_MASK).isZero();
+      } else if (bits.and(TL_STAT_MASK).EQ(TL_STAT_THIN)) {
+        return !bits.and(TL_THREAD_ID_MASK).isZero();
+        //return !bits.and(TL_THREAD_ID_MASK).EQ(TL_UNLOCK_MASK);
+      } else {
+        Lock l = Lock.getLock(getLockIndex(bits));
+        if (l != null) {
+          l.mutex.lock();
+          boolean result = l.hasOwner();
+          l.mutex.unlock();
+          return result;
+        }
+      }
+      RVMThread.yieldNoHandshake();
+    }
+  }
+
+  @Inline
+  @Uninterruptible
   public static boolean isFat(Word lockWord) {
     return lockWord.and(TL_STAT_MASK).EQ(TL_STAT_FAT);
   }

@@ -22,6 +22,9 @@ import org.jikesrvm.compilers.common.RuntimeCompiler;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+
+import org.jikesrvm.replay.ReplayManager;
+import org.jikesrvm.replay.ReplayOptions;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -74,6 +77,8 @@ public class CommandLineArgs {
     BASE_ARG,
     OPT_ARG,
     OPT_HELP_ARG,
+    REPLAY_ARG,
+    REPLAY_HELP_ARG,
     /* Silently ignored */
     VERIFY_ARG,
     GC_HELP_ARG,
@@ -203,6 +208,9 @@ public class CommandLineArgs {
                                             new Prefix("-X:vm:help$", PrefixType.HELP_ARG),
                                             new Prefix("-X:vm$", PrefixType.HELP_ARG),
                                             new Prefix("-X:vm:", PrefixType.ARG),
+                                            new Prefix("-X:replay:help$", PrefixType.REPLAY_HELP_ARG),
+                                            new Prefix("-X:replay$", PrefixType.REPLAY_HELP_ARG),
+                                            new Prefix("-X:replay:", PrefixType.REPLAY_ARG),
 
                                             /* Silently ignored */
                                             new Prefix("-Xverify", PrefixType.VERIFY_ARG),
@@ -641,6 +649,16 @@ public class CommandLineArgs {
             VM.sysWriteln("  Illegal command line argument prefix '-X:opt'");
             VM.sysExit(VM.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
           }
+          break;
+
+          // ----------------------------------------------------
+          // Replay system
+          // ----------------------------------------------------
+        case REPLAY_HELP_ARG:
+          ReplayOptions.printHelp("-X:replay");
+          break;
+        case REPLAY_ARG:
+          ReplayManager.processCommandLineArg(p.value, arg);
           break;
 
           // -------------------------------------------------------------------

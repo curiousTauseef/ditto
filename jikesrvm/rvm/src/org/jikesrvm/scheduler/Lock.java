@@ -297,6 +297,10 @@ public final class Lock implements Constants {
     }
   }
 
+  public boolean hasOwner() {
+    return ownerId != 0;
+  }
+
   /**
    * Disassociates this heavy-weight lock from the indicated object.
    * This lock is not held, nor are any threads on its queues.  Note:

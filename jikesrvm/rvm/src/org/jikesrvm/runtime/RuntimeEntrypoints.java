@@ -805,7 +805,7 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
    */
   @NoInline
   @Entrypoint
-  static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
+  public static void unlockAndThrow(Object objToUnlock, Throwable objToThrow) {
     ObjectModel.genericUnlock(objToUnlock);
     athrow(objToThrow);
   }
@@ -907,6 +907,8 @@ public class RuntimeEntrypoints implements Constants, ArchitectureSpecific.Stack
     // whenever the host operating system detects a debug request signal
     //
     BootRecord.the_boot_record.debugRequestedOffset = Entrypoints.debugRequestedField.getOffset();
+
+    BootRecord.the_boot_record.finishTraceRequestedOffset = Entrypoints.finishTraceRequestedField.getOffset();
   }
 
   /**

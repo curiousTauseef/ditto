@@ -203,6 +203,10 @@ public class BootRecord {
    */
   Offset debugRequestedOffset;
   /**
+   * jtoc offset of ReplayManager.finishTraceRequested
+   */
+  Offset finishTraceRequestedOffset;
+  /**
    * an external signal has been sent e.g. kill -signalnumber processid
    */
   @Entrypoint

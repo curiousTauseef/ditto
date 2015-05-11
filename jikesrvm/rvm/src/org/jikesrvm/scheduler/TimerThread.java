@@ -13,6 +13,9 @@
 package org.jikesrvm.scheduler;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.replay.FinishTraceThread;
+import org.jikesrvm.replay.ReplayManager;
+
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
@@ -64,6 +67,7 @@ public class TimerThread extends SystemThread {
         }
 
         RVMThread.checkDebugRequest();
+        FinishTraceThread.checkFinishTraceRequest();
       }
     } catch (Throwable e) {
       printExceptionAndDie(e);
