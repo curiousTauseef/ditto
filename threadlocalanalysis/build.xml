@@ -1,0 +1,22 @@
+<project basedir="." default="build" name="ThreadLocalAnalysis">
+  <property name="src.dir" value="src"/>
+  <property name="build.dir" value="build"/>
+
+  <target name="clean">
+    <delete dir="${build.dir}"/>
+  </target>
+
+  <target name="init">
+    <mkdir dir="${build.dir}"/>
+  </target>
+
+  <path id="TLO.classpath">
+    <pathelement location="lib"/>
+  </path>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${src.dir}" destdir="${build.dir}">
+      <classpath refid="TLO.classpath"/>
+    </javac>
+  </target>
+</project>
